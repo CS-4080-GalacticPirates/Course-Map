@@ -1,0 +1,18 @@
+1. Go to https://assist.org
+2. Select your colleges:
+   - From: Community College (e.g., Pasadena City College)
+   - To: University (e.g., Cal Poly Pomona)
+   - Year: 2025-26
+   - Major: Computer Science, B.S.
+3. Copy the URL from your browser
+4. Find the "viewByKey=" parameter in the URL
+5. The key is after "viewByKey=" (URL encoded with %2F)
+6. Decode it by replacing %2F with /
+
+Example URL:
+https://assist.org/transfer/results?...&viewByKey=76%2F118%2Fto%2F75%2FMajor%2F91d48af8-3aad-4422-6625-08dd783dfd80
+
+Decoded key:
+76/118/to/75/Major/91d48af8-3aad-4422-6625-08dd783dfd80
+
+8. Inside the main function, there is a "keys_to_scrape" list and input key there to add new colleges/majors
