@@ -8,9 +8,11 @@ import requests
 import json
 import time
 import csv
+import os
 
 
-DB_FILE = "assist.db"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = os.path.join(SCRIPT_DIR, "assist.db")
 
 
 def setup_database():
@@ -293,9 +295,23 @@ def main():
     keys_to_scrape = [
         "76/118/to/75/Major/91d48af8-3aad-4422-6625-08dd783dfd80",  # East LA -> Cal Poly Pomona
         "76/62/to/75/Major/91d48af8-3aad-4422-6625-08dd783dfd80",  # Mt. SAC -> Cal Poly Pomona
+        "76/49/to/75/Major/91d48af8-3aad-4422-6625-08dd783dfd80",  # Pasadena City College -> Cal Poly Pomona
+        "76/3/to/75/Major/91d48af8-3aad-4422-6625-08dd783dfd80",  # Los Angeles City College-> Cal Poly Pomona
+        "76/137/to/75/Major/91d48af8-3aad-4422-6625-08dd783dfd80",  # Santa Monica College -> Cal Poly Pomona
+        "76/118/to/117/Major/3fc7b07d-4058-4a0a-1f72-08ddcb96df9e",  # East LA -> UCLA
+        "76/62/to/117/Major/3fc7b07d-4058-4a0a-1f72-08ddcb96df9e",  # Mt. SAC -> UCLA
+        "76/49/to/117/Major/3fc7b07d-4058-4a0a-1f72-08ddcb96df9e",  # Pasadena City College -> UCLA
+        "76/3/to/117/Major/3fc7b07d-4058-4a0a-1f72-08ddcb96df9e",  # Los Angeles City College -> UCLA
+        "76/137/to/117/Major/3fc7b07d-4058-4a0a-1f72-08ddcb96df9e",  # Santa Monica College -> UCLA
     ]
 
     scrape_multiple(keys_to_scrape)
+
+    # Add location data
+    import geolocation
+
+    geolocation.main()
+
     show_results()
     export_to_csv("articulations.csv")
 
@@ -303,6 +319,7 @@ def main():
     print("\nFiles created:")
     print("  - assist.db (SQLite database)")
     print("  - articulations.csv (CSV export)")
+    print("  - location_data.csv (location export)")
     print("  - api_response.json (raw API data)")
 
 
