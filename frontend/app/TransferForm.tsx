@@ -96,12 +96,7 @@ export default function TransferForm() {
             />
 
             <Combobox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded bg-white border shadow">
-            {(classQuery === ''
-                ? classes
-                : classes.filter(c =>
-                    c.toLowerCase().includes(classQuery.toLowerCase())
-                )
-            ).map(course => (
+            {filteredClasses.map(course => (
                 <Combobox.Option
                 key={course}
                 value={course}
