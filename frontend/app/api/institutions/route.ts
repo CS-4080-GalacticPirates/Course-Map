@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '../../lib/db';
 
 export async function GET() {
-  const rows = db.prepare('SELECT institution_name FROM college_locations').all();
+  const stmt = (db.prepare(`SELECT institution_name FROM college_locations WHERE institution_type = ?`) as any);
 
-    console.log('Rows from DB:', rows);
+  const rows = stmt.all(['university']);
+
+  console.log('Rows from DB:', rows);
 
   const names = rows.map((row: any) => row.institution_name);
 

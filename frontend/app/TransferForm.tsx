@@ -11,7 +11,6 @@ export default function TransferForm() {
   const [classQuery, setClassQuery] = useState('');
   const [classes, setClasses] = useState<string[]>([]);
   const [selectedClasses, setSelectedClasses] = useState<string | null>(null);
-  const [classValue, setClassValue] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/institutions')
@@ -33,13 +32,11 @@ export default function TransferForm() {
         );
 
   const filteredClasses =
-  classQuery === ''
-    ? classes.filter((c): c is string => typeof c === 'string')
-    : classes.filter(
-        (c): c is string =>
-          typeof c === 'string' &&
-          c.toLowerCase().includes(classQuery.toLowerCase())
-      );
+    classQuery === ''
+      ? classes
+      : classes.filter(c =>
+            c.toLowerCase().includes(classQuery.toLowerCase())
+        );
 
 
   const handleSubmit = (e: React.FormEvent) => {
