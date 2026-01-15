@@ -10,19 +10,69 @@ export default function TransferForm() {
 
   const [classQuery, setClassQuery] = useState('');
   const [classes, setClasses] = useState<string[]>([]);
-  const [selectedClasses, setSelectedClasses] = useState<string | null>(null);
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch('/api/institutions')
-      .then(res => res.json())
-      .then(data => setUniversities(data));
+    const fetchUniversities = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/get_universities');
+        const data = await res.json();
+
+        if (data.error) {
+          console.error('Backend error:', data.error);
+          setUniversities([]);
+          return;
+        }
+
+        setUniversities(data.universities);
+      } catch (err) {
+        console.error('Fetch failed:', err);
+        setUniversities([]);
+      }
+    };
+
+    fetchUniversities();
   }, []);
 
   useEffect(() => {
-    fetch('/api/classes')
-      .then(res => res.json())
-      .then(data => setClasses(data));
-  }, []);
+    if (!selectedUni) return;
+
+    const fetchCourses = async () => {
+      try {
+        const res = await fetch(
+          'http://localhost:8000/api/get_university_courses_specific',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              university: selectedUni,
+            }),
+          }
+        );
+
+        const data = await res.json();
+
+        if (data.error) {
+          console.error('Backend error:', data.error);
+          setClasses([]);
+          return;
+        }
+
+        setClasses(data.courses);
+      } catch (err) {
+        console.error('Fetch failed:', err);
+        setClasses([]);
+      }
+    };
+
+    setSelectedClasses([]);
+    setClassQuery('');
+    setClasses([]);
+
+    fetchCourses();
+  }, [selectedUni]);
 
   const filteredUniversities =
     uniQuery === ''
@@ -35,9 +85,8 @@ export default function TransferForm() {
     classQuery === ''
       ? classes
       : classes.filter(c =>
-            c.toLowerCase().includes(classQuery.toLowerCase())
+          c.toLowerCase().includes(classQuery.toLowerCase())
         );
-
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,15 +110,19 @@ export default function TransferForm() {
           <Combobox.Input
             className="w-full border p-2 rounded"
             placeholder="Search university..."
-            onChange={e => setUniQuery(e.target.value)}
+            displayValue={(value: string) => value}
+            onChange={(e) => setUniQuery(e.target.value)}
           />
+
           <Combobox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded bg-white border shadow">
             {filteredUniversities.map(uni => (
               <Combobox.Option
                 key={uni}
                 value={uni}
                 className={({ active }) =>
-                  `cursor-pointer p-2 ${active ? 'bg-blue-500 text-white' : ''}`
+                  `cursor-pointer p-2 ${
+                    active ? 'bg-blue-500 text-white' : ''
+                  }`
                 }
               >
                 {uni}
@@ -83,35 +136,67 @@ export default function TransferForm() {
         What class would you like to transfer?
       </h2>
 
-        <Combobox value={selectedClasses} onChange={setSelectedClasses}>
+      <Combobox
+        value={selectedClasses}
+        onChange={setSelectedClasses}
+        multiple
+        disabled={!selectedUni}
+      >
         <div className="relative">
-            <Combobox.Input
-            className="w-full border p-2 rounded"
-            placeholder="Search classes..."
+          <Combobox.Input
+            className="w-full border p-2 rounded disabled:bg-gray-100"
+            placeholder={
+              selectedUni
+                ? 'Search classes...'
+                : 'Select a university first'
+            }
+            displayValue={(values: string[]) => values.join(', ')}
             onChange={(e) => setClassQuery(e.target.value)}
-            displayValue={(value: string) => value}
-            />
+          />
 
-            <Combobox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded bg-white border shadow">
+          <Combobox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded bg-white border shadow">
             {filteredClasses.map(course => (
-                <Combobox.Option
+              <Combobox.Option
                 key={course}
                 value={course}
                 className={({ active }) =>
-                    `cursor-pointer p-2 ${active ? 'bg-blue-500 text-white' : ''}`
+                  `cursor-pointer p-2 flex justify-between ${
+                    active ? 'bg-blue-500 text-white' : ''
+                  } ${
+                    selectedClasses.includes(course) ? 'font-medium' : ''
+                  }`
                 }
-                >
-                {course}
-                </Combobox.Option>
+              >
+                <span>{course}</span>
+                {selectedClasses.includes(course) && <span>✓</span>}
+              </Combobox.Option>
             ))}
-            </Combobox.Options>
+          </Combobox.Options>
         </div>
-        </Combobox>
+      </Combobox>
 
+      {selectedClasses.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {selectedClasses.map(course => (
+            <span
+              key={course}
+              className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm cursor-pointer"
+              onClick={() =>
+                setSelectedClasses(prev =>
+                  prev.filter(c => c !== course)
+                )
+              }
+            >
+              {course} ✕
+            </span>
+          ))}
+        </div>
+      )}
 
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
+        disabled={!selectedUni || selectedClasses.length === 0}
+        className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
       >
         Search
       </button>

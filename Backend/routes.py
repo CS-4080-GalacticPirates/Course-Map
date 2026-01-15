@@ -1,10 +1,19 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import aiosqlite
+from fastapi.middleware.cors import CORSMiddleware
 
 
 # initialize API
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class UniversityCourseItem(BaseModel):
     university: str
@@ -44,6 +53,29 @@ async def get_university_courses(item: UniversityCourseItem):
     # now get all courses according to ids
     placeholders = ', '.join(['?'] * len(ids))
     cursor = await conn.execute(f"SELECT receiving_course FROM articulations WHERE agreement_id IN ({placeholders})", ids)
+    courses = await cursor.fetchall()
+    courses = [course[0] for course in courses]
+    await conn.close()
+    return {
+        "courses": courses
+    }
+
+@app.post("/api/get_university_courses_specific")
+async def get_university_courses(item: UniversityCourseItem):
+    """Get all courses of a university that is in the database."""
+    university = item.university
+    conn = await aiosqlite.connect("assist.db")
+
+    # first get agreement ids that tie to the university
+    cursor = await conn.execute("SELECT id FROM agreements WHERE receiving_institution = ?", (university,))
+    ids = await cursor.fetchall()
+    if len(ids) == 0:
+        return {"error": "No such university found."}
+    ids = [id[0] for id in ids]
+
+    # now get all courses according to ids
+    placeholders = ', '.join(['?'] * len(ids))
+    cursor = await conn.execute(f"SELECT DISTINCT receiving_course FROM articulations WHERE agreement_id IN ({placeholders})", ids)
     courses = await cursor.fetchall()
     courses = [course[0] for course in courses]
     await conn.close()
