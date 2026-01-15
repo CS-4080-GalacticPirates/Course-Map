@@ -61,12 +61,12 @@ async def get_equivalent_courses(item: SearchItem):
     courses = item.courses
     placeholders = ', '.join(['?'] * len(courses))
     conn = await aiosqlite.connect("assist.db")
-    cursor = await conn.execute(f"SELECT agreement_id,logic FROM articulations WHERE receiving_course IN ({placeholders})", courses)
+    cursor = await conn.execute(f"SELECT id,agreement_id,receiving_course FROM articulations WHERE receiving_course IN ({placeholders})", courses)
     data = await cursor.fetchall()
     ids = [id[0] for id in data]
-    logics = [logic[1] for logic in data]
-
-    # get the agreement id and get the courses along with SINGLE, OR, AND logic (ex: CC says this OR this course is allowed)
+    agreement_ids = [id[1] for id in data]
+    courses = [course[2] for course in data]
+    # get the agreement id and get the courses
     # add to the response as one entry per course
     # first add university location to compare with all others
     university = item.university
@@ -76,15 +76,13 @@ async def get_equivalent_courses(item: SearchItem):
         return {"error": "No such university found."}
     location = location[0][0]
     results = [{"university_info": {"name": university, "location":location}}]
-    for id, logic, course in zip(ids, logics, courses):
-
-        # course(s) for one course
-        cursor = await conn.execute(f"SELECT course FROM sending_courses WHERE articulation_id = ?", (int(id),))
+    for id, agreement_id, course in list(zip(ids, agreement_ids, courses)):
+        # course(s) for one uni course
+        cursor = await conn.execute(f"SELECT course FROM sending_courses WHERE articulation_id = ?", (id,))
         courses = await cursor.fetchall()
         courses = [course[0] for course in courses]
-        courses = " " + logic + " ".join(courses)
-
-        cursor = await conn.execute("SELECT sending_institution FROM agreements WHERE id = ?", (id,))
+        
+        cursor = await conn.execute("SELECT sending_institution FROM agreements WHERE id = ?", (agreement_id,))
         college = await cursor.fetchall()
         college = college[0][0]
 
