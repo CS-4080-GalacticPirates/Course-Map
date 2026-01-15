@@ -42,10 +42,10 @@ def setup_database():
         
         CREATE TABLE IF NOT EXISTS sending_courses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            articulation_id INTEGER,
+            agreement_id TEXT,
             course TEXT,
-            FOREIGN KEY (articulation_id) REFERENCES articulations(id),
-            UNIQUE(articulation_id, course)
+            FOREIGN KEY (agreement_id) REFERENCES agreements(id),
+            UNIQUE(agreement_id, course)
         );
     """
     )
@@ -170,7 +170,6 @@ def save_data(key, data):
                     "INSERT INTO articulations (agreement_id, receiving_course, logic) VALUES (?, ?, ?)",
                     (agreement_id, receiving_course, logic),
                 )
-                articulation_id = cursor.lastrowid
 
                 # Save sending courses
                 for item_group in items:
@@ -179,8 +178,8 @@ def save_data(key, data):
                             cc_course = f"{course.get('prefix', '')} {course.get('courseNumber', '')} - {course.get('courseTitle', '')}".strip()
                             try:
                                 cursor.execute(
-                                    "INSERT INTO sending_courses (articulation_id, course) VALUES (?, ?)",
-                                    (articulation_id, cc_course),
+                                    "INSERT INTO sending_courses (agreement_id, course) VALUES (?, ?)",
+                                    (agreement_id, cc_course),
                                 )
                             except sqlite3.IntegrityError:
                                 pass
@@ -240,7 +239,7 @@ def export_to_csv(filename="articulations.csv"):
             art.logic
         FROM agreements ag
         JOIN articulations art ON ag.id = art.agreement_id
-        LEFT JOIN sending_courses sc ON art.id = sc.articulation_id
+        LEFT JOIN sending_courses sc ON ag.id = sc.agreement_id
         ORDER BY ag.sending_institution, art.receiving_course
     """
 
