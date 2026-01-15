@@ -9,11 +9,11 @@ uvicorn routes:app --reload (remove the --reload flag to manually restart the AP
 /api/get_universities: GET
 
 /api/get_university_courses: POST
-Request Format: {"university": {university name as it appears in database}}
+Request Format: {"university": "university name as it appears in database"}
 
 /api/get_equivalent_courses: POST
 Request Format: {
-    "university": {university name as it appears in database},
-    "courses": {courses being requested as it appears in the database}
+    "university": "university name as it appears in database",
+    "courses": "courses being requested as it appears in the database"
 }
 
