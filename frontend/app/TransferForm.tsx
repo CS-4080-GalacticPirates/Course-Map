@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Combobox } from '@headlessui/react';
+import { useRouter } from 'next/navigation';
 
 export default function TransferForm() {
   const [uniQuery, setUniQuery] = useState('');
   const [universities, setUniversities] = useState<string[]>([]);
   const [selectedUni, setSelectedUni] = useState<string | null>(null);
+  const router = useRouter();
 
   const [classQuery, setClassQuery] = useState('');
   const [classes, setClasses] = useState<string[]>([]);
@@ -90,10 +92,12 @@ export default function TransferForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({
-      university: selectedUni,
-      classes: selectedClasses,
-    });
+
+    router.push(
+      `/results?university=${encodeURIComponent(selectedUni!)}&classes=${encodeURIComponent(
+        selectedClasses.join(',')
+      )}`
+    );
   };
 
   return (
