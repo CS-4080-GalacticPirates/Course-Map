@@ -95,7 +95,7 @@ export default function TransferForm() {
 
     router.push(
       `/results?university=${encodeURIComponent(selectedUni!)}&classes=${encodeURIComponent(
-        selectedClasses.join(',')
+        selectedClasses.join('|')
       )}`
     );
   };

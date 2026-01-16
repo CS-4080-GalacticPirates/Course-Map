@@ -1,13 +1,47 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+
+type EquivalentCoursesRequest = {
+  university: string;
+  courses: string[];
+};
+
+export async function fetchEquivalentCourses(
+  university: string | null,
+  courses: string[]
+) {
+  const response = await fetch("/api/get_equivalent_courses", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      university,
+      courses,
+    } as EquivalentCoursesRequest),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch equivalent courses: ${response.status} ${response.statusText}`
+    );
+  }
+
+  return response.json();
+}
 
 export default function ResultsPage() {
   const params = useSearchParams();
 
   const university = params.get('university');
-  const classes =
-    params.get('classes')?.split(',') ?? [];
+  const courses = params.get('classes')?.split("|") ?? [];
+  const results = await fetchEquivalentCourses(university, courses)
+  
+
+
+  
 
   return (
     <div className="max-w-3xl mx-auto mt-16 p-6 bg-white shadow rounded">
@@ -24,9 +58,9 @@ export default function ResultsPage() {
       </h2>
 
       <ul className="list-disc ml-6">
-        {classes.map(c => (
+        {/* {results.map(c => (
           <li key={c}>{c}</li>
-        ))}
+        ))} */results}
       </ul>
     </div>
   );
