@@ -130,15 +130,3 @@ async def get_equivalent_courses(item: SearchItem):
         })
     await conn.close()
     return results
-    
-
-
-
-
-
-
-
-
-
-
-    
